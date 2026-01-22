@@ -13,31 +13,16 @@ def get_links(note):
 
             for line in file:
 
-                is_link = False
-                link = ""
+                while "[[" in line:
+                    start = line.find("[[")
+                    end = line.find("]]")
 
-                for word in line.split():
+                    if end == -1:
+                        break
 
-                    if "[[" in word:
-                        is_link = True
-
-                    if is_link:
-                        i = 0
-                        while True:
-                            if i >= len(word):
-                                link += " "
-                                break
-
-                            if word[i : i + 2] == "]]":
-                                # print(link)
-                                links.append(link)
-                                link = ""
-                                is_link = False
-                                break
-
-                            if word[i] not in ["[", "]", "*", "_", '"']:
-                                link += word[i]
-                            i += 1
+                    link = line[start + 2 : end]
+                    links.append(link)
+                    line = line[end + 2 :]
 
                     # if word[0] == "[" and is_link == False:
                     #     is_link = True
