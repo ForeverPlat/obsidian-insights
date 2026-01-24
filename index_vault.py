@@ -81,16 +81,6 @@ def get_text(file_path):
 
 
 def get_links(source_note_id, file_path):
-    # example of link
-    #     {
-    #         "source_note_id": id,
-    #         "target_node_id": id
-    #         "target_title": "Another Note",
-    #         "target_path": "/notes/another_note.md",
-    #     },
-
-    links = []
-
     try:
         with open(file_path, "r") as file:
 
@@ -118,10 +108,8 @@ def get_links(source_note_id, file_path):
     except:
         print(f"{file_path} does not exsist")
 
-    return links
 
-
-def build_db():
+def index_vault():
 
     for filename in os.listdir(VAULT_DIR):
         if filename[-2:] != "md":
@@ -152,8 +140,8 @@ def build_db():
             )
 
 
-build_db()
-# print(get_notes())
+# index_vault()
+print(get_notes())
 note = "Obsidian Test"
 note_path = f"{VAULT_DIR}/{note}.md"
 # l = get_links("Basics Of Technical Analysis FNCE")

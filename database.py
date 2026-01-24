@@ -65,8 +65,11 @@ def get_notes():
     return cursor.fetchall()
 
 
-def get_note_by_id(note_id):
-    pass
+def get_raw_text_by_id(note_id):
+
+    cursor.execute("SELECT raw_text FROM note WHERE id = ?", (note_id,))
+    row = cursor.fetchone()
+    return row[0] if row else ""
 
 
 # [ LINK OPERATIONS ]
