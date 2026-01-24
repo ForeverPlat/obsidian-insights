@@ -3,6 +3,8 @@ import hashlib
 from pathlib import Path
 from datetime import datetime
 from database import *
+from segment_notes import build_segments
+from utils.ids import *
 
 # import re
 
@@ -41,20 +43,6 @@ def get_files():
 
 
 # get_files()
-
-
-def get_note_id(file_path):
-
-    file_path = Path(file_path)
-    file_stats = file_path.stat()
-
-    if hasattr(file_stats, "st_birthtime"):
-        created_at = datetime.fromtimestamp(file_stats.st_birthtime)
-    else:
-        created_at = datetime.fromtimestamp(file_stats.st_mtime)  # fallback
-
-    note_id = created_at.strftime("%Y%m%d%H%M%S")
-    return note_id
 
 
 def get_file_times(file_path):
@@ -117,12 +105,13 @@ def index_vault():
 
         full_path = os.path.join(VAULT_DIR, filename)
         if os.path.isfile(full_path):
-            id = get_note_id(full_path)
+
+            note_id = get_note_id(full_path)
 
             get_links(id, full_path)
 
             note = {
-                "note_id": id,
+                "note_id": note_id,
                 "path": full_path,
                 "title": filename,
                 "raw_text": get_text(full_path),
@@ -139,9 +128,13 @@ def index_vault():
                 note["modified_at"],
             )
 
+            # segment here
+            # build_segments(note_id)
+
 
 # index_vault()
 print(get_notes())
+# index_vault()
 note = "Obsidian Test"
 note_path = f"{VAULT_DIR}/{note}.md"
 # l = get_links("Basics Of Technical Analysis FNCE")

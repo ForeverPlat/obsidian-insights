@@ -38,6 +38,18 @@ def init_schema():
         )
         """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS segment (
+            segment_id TEXT,
+            note_id TEXT,
+            heading TEXT,
+            content TEXT,
+            position NUMBER,
+
+            FOREIGN KEY (note_id) REFERENCES note(id)
+        )
+   """)
+
     conn.commit()
 
 
@@ -58,6 +70,12 @@ def insert_note(id, path, title, raw_text, created_at, modified_at):
     )
 
     conn.commit()
+
+
+def get_note_id_by_path(file_path):
+    cursor.execute("SELECT id FROM note WHERE path = ?", (file_path,))
+    row = cursor.fetchone()
+    return row[0] if row else ""
 
 
 def get_notes():
@@ -95,3 +113,16 @@ def get_links_from(note_id):
 
 def get_links_to(note_id):
     pass
+
+
+# [ SEGMENT OPERATIONS ]
+
+
+def insert_segment(segment_id, note_id, heading, content, position):
+
+    cursor.execute(
+        "INSERT INTO segment (segment_id, note_id, heading, content, position) VALUES (?,?,?,?,?)",
+        (segment_id, note_id, heading, content, position),
+    )
+
+    conn.commit()
