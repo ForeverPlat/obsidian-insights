@@ -39,5 +39,7 @@ def embed_segments():
         # vectors.append(vector)
 
 
+# embed_segments()
+
 # all_embeddings = get_embeddings()
 # print(f"Successfully inserted {len(all_embeddings)} embeddings")
