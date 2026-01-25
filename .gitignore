@@ -1,1 +1,12 @@
-note.db
+# Python
+__pycache__/
+*.pyc
+
+# SQLite databases
+*.db
+
+# local embeddings / cache
+embeddings.db
+
+# venv
+.venv/

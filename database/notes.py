@@ -1,14 +1,4 @@
-import sqlite3
-
-# [ DATABASE SETUP ]
-# - DB_PATH
-# - connection
-# - cursor
-
-conn = sqlite3.connect("note.db")
-cursor = conn.cursor()
-
-cursor.execute("PRAGMA foreign_keys = ON")
+from . import conn, cursor
 
 # [ SCHEMA ]
 # - init_schema()
@@ -40,11 +30,11 @@ def init_schema():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS segment (
-            segment_id TEXT,
+            segment_id TEXT PRIMARY KEY,
             note_id TEXT,
             heading TEXT,
             content TEXT,
-            position NUMBER,
+            position INTEGER,
 
             FOREIGN KEY (note_id) REFERENCES note(id)
         )
@@ -52,8 +42,6 @@ def init_schema():
 
     conn.commit()
 
-
-init_schema()
 
 # [ NOTE OPERATIONS ]
 # - insert_note
@@ -118,7 +106,32 @@ def get_links_to(note_id):
 # [ SEGMENT OPERATIONS ]
 
 
+def get_segments():
+    cursor.execute(
+        "SELECT segment_id, note_id, heading, content, position FROM segment"
+    )
+    rows = cursor.fetchall()
+    # return rows
+    # Convert to dictionaries for easier use
+    return [
+        {
+            "segment_id": row[0],
+            "note_id": row[1],
+            "heading": row[2],
+            "content": row[3],
+            "position": row[4],
+        }
+        for row in rows
+    ]
+
+
 def insert_segment(segment_id, note_id, heading, content, position):
+
+    # check if note exists
+    cursor.execute("SELECT 1 FROM note WHERE id = ?", (note_id,))
+
+    if cursor.fetchone() is None:
+        raise ValueError(f"Note with id {note_id} does not exist")
 
     cursor.execute(
         "INSERT INTO segment (segment_id, note_id, heading, content, position) VALUES (?,?,?,?,?)",

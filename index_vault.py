@@ -2,11 +2,13 @@ import os
 import hashlib
 from pathlib import Path
 from datetime import datetime
-from database import *
+from database.notes import *
 from segment_notes import build_segments
+from database.__init__ import init_all_schemas
 from utils.ids import *
 
 # import re
+init_all_schemas()
 
 VAULT_DIR = "/Users/luqmanajani/documents/Notes/Obsidian-Vault"
 # note_path = f"{vault_dir}/Intro to Databases.md"
@@ -129,12 +131,11 @@ def index_vault():
             )
 
             # segment here
-            # build_segments(note_id)
+            build_segments(note_id)
 
 
-# index_vault()
-print(get_notes())
-# index_vault()
+index_vault()
+# print(get_notes())
 note = "Obsidian Test"
 note_path = f"{VAULT_DIR}/{note}.md"
 # l = get_links("Basics Of Technical Analysis FNCE")
