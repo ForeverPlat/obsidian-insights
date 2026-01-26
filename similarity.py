@@ -1,5 +1,7 @@
+from sqlite3 import connect
 from database import init_all_schemas
 from database.embeddings import get_embeddings
+from database.notes import is_link
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -58,12 +60,23 @@ def extract_similar_edges(segment_ids, similarity_matrix, top_k=5):
     return similar_edges
 
 
-def find_missing_connections():
+def find_missing_connections(similar_edges):
+
+    connections = []
+
+    for edge in similar_edges:
+
+        is_missing = not is_link(edge["source"], edge["target"])
+
+        if is_missing:
+            connections.append(edge)
+
     # check if edge already exist (link)
-    pass
+    return connections
 
 
 segment_ids, similarity_matrix = compute_similarity(model_name)
-edges = extract_similar_edges(segment_ids, similarity_matrix)
+similar_edges = extract_similar_edges(segment_ids, similarity_matrix)
+missing_connections = find_missing_connections(similar_edges)
 
-print(edges)
+print(missing_connections)

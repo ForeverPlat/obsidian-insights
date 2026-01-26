@@ -95,6 +95,21 @@ def insert_link(source_note_id, target_note_id):
     conn.commit()
 
 
+def is_link(source, target):
+
+    source_note_id = get_note_id_by_segment_id(source)
+    target_note_id = get_note_id_by_path(target)
+
+    cursor.execute(
+        "SELECT source_note_id, target_note_id FROM link WHERE source_note_id = ? AND target_note_id = ?",
+        (source_note_id, target_note_id),
+    )
+
+    is_link = cursor.fetchone() is not None
+
+    return is_link
+
+
 def get_links_from(note_id):
     pass
 
@@ -123,6 +138,18 @@ def get_segments():
         }
         for row in rows
     ]
+
+
+def get_note_id_by_segment_id(segment_id):
+    cursor.execute("SELECT note_id FROM segment WHERE segment_id = ?", (segment_id,))
+    row = cursor.fetchone()
+    return row[0] if row else ""
+
+
+def get_note_title_by_segment_id(segment_id):
+    note_id = get_note_id_by_segment_id(segment_id)
+
+    cursor.execute("SELECT title FROM note WHERE note_id = ?", (note_id,))
 
 
 def insert_segment(segment_id, note_id, heading, content, position):
