@@ -149,7 +149,10 @@ def get_note_id_by_segment_id(segment_id):
 def get_note_title_by_segment_id(segment_id):
     note_id = get_note_id_by_segment_id(segment_id)
 
-    cursor.execute("SELECT title FROM note WHERE note_id = ?", (note_id,))
+    cursor.execute("SELECT title FROM note WHERE id = ?", (note_id,))
+
+    title = cursor.fetchone()
+    return title
 
 
 def insert_segment(segment_id, note_id, heading, content, position):
