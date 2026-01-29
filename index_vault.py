@@ -89,9 +89,9 @@ def get_links(source_note_id, file_path):
                     target_path = os.path.join(VAULT_DIR, link_name)
 
                     if os.path.isfile(target_path):
-                        target_note_id = get_note_id(target_path)
+                        target_note_id = build_note_id(target_path)
 
-                        insert_link(source_note_id, target_note_id)
+                        insert_note_link(source_note_id, target_note_id)
 
                     line = line[end + 2 :]
 
@@ -108,7 +108,7 @@ def index_vault():
         full_path = os.path.join(VAULT_DIR, filename)
         if os.path.isfile(full_path):
 
-            note_id = get_note_id(full_path)
+            note_id = build_note_id(full_path)
 
             get_links(id, full_path)
 

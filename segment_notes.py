@@ -1,6 +1,6 @@
 from os import wait
 from database.notes import *
-from utils.ids import get_segment_id
+from utils.ids import build_segment_id
 
 # segment_id (hash of note_id + position)
 # note_id
@@ -22,6 +22,9 @@ from utils.ids import get_segment_id
 
 FOUND_HEADER = False
 FOUND_BOLD = False
+
+MIN_CHARS = 100
+MIN_WORDS = 20
 
 
 def process_line_into_segments(curr_segment, segments, is_delimeter, line):
@@ -127,7 +130,12 @@ def build_segments(note_id):
 
     for position, segment in enumerate(segments, start=1):
 
-        segment_id = get_segment_id(note_id, segment["heading"], position)
+        segment_id = build_segment_id(note_id, segment["heading"], position)
+
+        content = segment["text"].strip()
+
+        if len(content) < MIN_CHARS:
+            continue
 
         # i do not think the position is working
         insert_segment(

@@ -4,7 +4,7 @@ from database.notes import get_segments
 from database.embeddings import insert_embedding, get_embeddings  # type: ignore
 
 # put in main later
-# init_all_schemas()
+init_all_schemas()
 
 
 def embed_segments():
@@ -39,7 +39,7 @@ def embed_segments():
         # vectors.append(vector)
 
 
-# embed_segments()
+embed_segments()
 
 # all_embeddings = get_embeddings()
 # print(f"Successfully inserted {len(all_embeddings)} embeddings")

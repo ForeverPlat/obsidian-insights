@@ -20,11 +20,11 @@ def init_schema():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS link (
-            source_note_id TEXT,
-            target_note_id TEXT,
+            note_a_id TEXT,
+            note_b_id  TEXT,
 
-            FOREIGN KEY (source_note_id) REFERENCES note(id),
-            FOREIGN KEY (target_note_id) REFERENCES note(id)
+            FOREIGN KEY (note_a_id) REFERENCES note(id),
+            FOREIGN KEY (note_b_id) REFERENCES note(id)
         )
         """)
 
@@ -85,29 +85,36 @@ def get_raw_text_by_id(note_id):
 # - etc.
 
 
-def insert_link(source_note_id, target_note_id):
+def insert_note_link(seg_a_id, seg_b_id):
+
+    note_id_1 = get_note_id_by_segment_id(seg_a_id)
+    note_id_2 = get_note_id_by_segment_id(seg_b_id)
+
+    note_low_id = min(note_id_1, note_id_2)
+    note_high_id = max(note_id_1, note_id_2)
 
     cursor.execute(
-        "INSERT INTO link (source_note_id, target_note_id) VALUES (?,?)",
-        (source_note_id, target_note_id),
+        "INSERT INTO link (note_a_id, note_b_id) VALUES (?,?)",
+        (note_low_id, note_high_id),
     )
 
     conn.commit()
 
 
-def is_link(source, target):
+def note_link_exist(seg_a_id, seg_b_id):
 
-    source_note_id = get_note_id_by_segment_id(source)
-    target_note_id = get_note_id_by_path(target)
+    note_id_1 = get_note_id_by_segment_id(seg_a_id)
+    note_id_2 = get_note_id_by_segment_id(seg_b_id)
+
+    note_low_id = min(note_id_1, note_id_2)
+    note_high_id = max(note_id_1, note_id_2)
 
     cursor.execute(
-        "SELECT source_note_id, target_note_id FROM link WHERE source_note_id = ? AND target_note_id = ?",
-        (source_note_id, target_note_id),
+        "SELECT 1 FROM link WHERE note_a_id = ? AND note_b_id = ?",
+        (note_low_id, note_high_id),
     )
 
-    is_link = cursor.fetchone() is not None
-
-    return is_link
+    return cursor.fetchone() is not None
 
 
 def get_links_from(note_id):

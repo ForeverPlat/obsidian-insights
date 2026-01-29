@@ -2,7 +2,7 @@ import hashlib
 from pathlib import Path
 
 
-def get_note_id(file_path: str):
+def build_note_id(file_path: str):
 
     normalized = file_path.lower().replace("\\", "/")
 
@@ -18,7 +18,7 @@ def get_note_id(file_path: str):
     return hex_digest
 
 
-def get_segment_id(note_id: str, heading: str, position: int):
+def build_segment_id(note_id: str, heading: str, position: int):
     heading_part = heading.lower().strip() if heading else ""
     raw = f"{note_id}:{position}:{heading_part}"
 

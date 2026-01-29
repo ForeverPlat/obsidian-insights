@@ -1,14 +1,15 @@
+from torch import topk
 from database import init_all_schemas
 from database.embeddings import get_embeddings
 from database.notes import (
     get_note_id_by_segment_id,
-    is_link,
+    note_link_exist,
     get_note_title_by_segment_id,
 )
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-init_all_schemas()
+# init_all_schemas()
 
 model_name = "all-MiniLM-L6-v2"
 SIMILARITY_THRESHOLD = 0.7
@@ -28,12 +29,9 @@ def compute_similarity(model_name):
 
 def extract_similar_edges(segment_ids, similarity_matrix, top_k=5):
 
-    similar_edges = []
+    similar_edges = {}
 
     for i, seg_a in enumerate(segment_ids):
-        # for max five per
-        edges_found = 0
-
         similarity_scores = similarity_matrix[i]
         sorted_indices = sorted(
             range(len(similarity_scores)),
@@ -48,6 +46,7 @@ def extract_similar_edges(segment_ids, similarity_matrix, top_k=5):
                 continue
 
             seg_b = segment_ids[other_index]
+
             note_a = get_note_id_by_segment_id(seg_a)
             note_b = get_note_id_by_segment_id(seg_b)
 
@@ -60,39 +59,30 @@ def extract_similar_edges(segment_ids, similarity_matrix, top_k=5):
             if score < SIMILARITY_THRESHOLD:
                 break  # since it is ordered other remaining scores will be lower
 
-            soure_name = get_note_title_by_segment_id(seg_a)
-            target_name = get_note_title_by_segment_id(seg_b)
-
-            seen_edges = set()
-            edge_key = tuple(sorted((seg_a, seg_b)))
-
-            # hehehehe O(1)
-            # okay bud its not that special
-            if edge_key in seen_edges:
-                # skip if missing connection has been found
-                continue
+            edge_key = tuple(sorted((note_a, note_b)))
 
             # for visual rep
-            similar_edges.append(
-                {
-                    "source": seg_a,
-                    "target": seg_b,
-                    "score": score,
-                    "source_name": soure_name,
-                    "target_name": target_name,
-                }
-            )
+            edge = {
+                "source": seg_a,
+                "target": seg_b,
+                "score": score,
+                "source_name": get_note_title_by_segment_id(seg_a),
+                "target_name": get_note_title_by_segment_id(seg_b),
+            }
 
-            # for regular
-            # similar_edges.append({"source": seg_a, "target": seg_b, "score": score})
+            if edge_key not in similar_edges:
+                similar_edges[edge_key] = edge
+            else:
+                if score > similar_edges[edge_key]["score"]:
+                    similar_edges[edge_key] = edge
 
-            seen_edges.add(edge_key)
+    sorted_edges = sorted(
+        similar_edges.values(),
+        key=lambda e: e["score"],
+        reverse=True,
+    )
 
-            edges_found += 1
-            if edges_found >= top_k:
-                break
-
-    return similar_edges
+    return sorted_edges[:top_k]
 
 
 def find_missing_connections(similar_edges):
@@ -101,7 +91,7 @@ def find_missing_connections(similar_edges):
 
     for edge in similar_edges:
 
-        is_missing = not is_link(edge["source"], edge["target"])
+        is_missing = not note_link_exist(edge["source"], edge["target"])
 
         if is_missing:
             # for regular
