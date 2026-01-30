@@ -1,5 +1,6 @@
-from index_vault import index_vault
 from database.__init__ import init_all_schemas
+from database.notes import drop_all_tables
+from index_vault import index_vault
 from segment_notes import *
 from embed import *
 from similarity import (
@@ -9,9 +10,11 @@ from similarity import (
 )
 
 model_name = "all-MiniLM-L6-v2"
+DB_PATH = "note.db"
 
 
 def obsidian_insights():
+    drop_all_tables()
     init_all_schemas()
 
     index_vault()

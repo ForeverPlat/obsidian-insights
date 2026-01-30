@@ -2,6 +2,7 @@ from database import init_all_schemas
 from database.embeddings import get_embeddings
 from database.notes import (
     get_note_id_by_segment_id,
+    get_segment_content,
     note_link_exist,
     get_note_title_by_segment_id,
 )
@@ -70,6 +71,8 @@ def extract_similar_edges(segment_ids, similarity_matrix, top_k=5):
                 "score": score,
                 "source_name": get_note_title_by_segment_id(seg_a),
                 "target_name": get_note_title_by_segment_id(seg_b),
+                "source_content": get_segment_content(seg_a),
+                "target_content": get_segment_content(seg_b),
             }
 
             if edge_key not in similar_edges:
@@ -93,16 +96,21 @@ def find_missing_connections(similar_edges):
 
     for edge in similar_edges:
 
-        is_missing = not note_link_exist(edge["source"], edge["target"])
+        source_note = get_note_id_by_segment_id(edge["source"])
+        target_note = get_note_id_by_segment_id(edge["target"])
 
-        if is_missing:
-            # for regular
-            # connections.append(edge)
+        if source_note == target_note:
+            continue
+
+        if note_link_exist(source_note, target_note):
+            continue  # already linked
 
             # for visual rep
-            connections.append(
-                f"{edge['source_name']} -> {edge['target_name']}, score: {edge['score']}"
-            )
+        connections.append(
+            f"{edge['source_name']} -> {edge['target_name']}, score: {edge['score']}\n\n"
+            + f"{edge['source_name']} \n {edge['source_content']}\n\n"
+            + f"{edge['target_name']} \n {edge['target_content']}\n\n"
+        )
 
     # check if edge already exist (link)
     return connections

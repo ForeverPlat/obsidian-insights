@@ -43,6 +43,18 @@ def init_schema():
     conn.commit()
 
 
+def drop_all_tables():
+    cursor.execute("PRAGMA foreign_keys = OFF")
+
+    cursor.execute("DROP TABLE IF EXISTS link")
+    cursor.execute("DROP TABLE IF EXISTS segment")
+    cursor.execute("DROP TABLE IF EXISTS note")
+
+    cursor.execute("PRAGMA foreign_keys = ON")
+
+    conn.commit()
+
+
 # [ NOTE OPERATIONS ]
 # - insert_note
 # - update_note
@@ -111,12 +123,12 @@ def insert_note_link(note_id_a, note_id_b):
 
 def note_link_exist(note_id_a, note_id_b):
 
-    note_low_id = min(note_id_a, note_id_b)
-    note_high_id = max(note_id_a, note_id_b)
+    low = min(note_id_a, note_id_b)
+    high = max(note_id_a, note_id_b)
 
     cursor.execute(
         "SELECT 1 FROM link WHERE note_a_id = ? AND note_b_id = ?",
-        (note_low_id, note_high_id),
+        (low, high),
     )
 
     return cursor.fetchone() is not None
@@ -150,6 +162,12 @@ def get_segments():
         }
         for row in rows
     ]
+
+
+def get_segment_content(segment_id):
+    cursor.execute("SELECT content FROM segment WHERE segment_id = ?", (segment_id,))
+    row = cursor.fetchone()
+    return row[0] if row else ""
 
 
 def get_note_id_by_segment_id(segment_id):
