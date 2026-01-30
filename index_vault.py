@@ -1,14 +1,14 @@
 import os
-import hashlib
 from pathlib import Path
 from datetime import datetime
+
+from numpy import full
 from database.notes import *
 from segment_notes import build_segments
-from database.__init__ import init_all_schemas
 from utils.ids import *
 
 # import re
-init_all_schemas()
+# init_all_schemas()
 
 VAULT_DIR = "/Users/luqmanajani/documents/Notes/Obsidian-Vault"
 # note_path = f"{vault_dir}/Intro to Databases.md"
@@ -62,15 +62,34 @@ def get_file_times(file_path):
 
 
 def get_text(file_path):
-    try:
-        with open(file_path, "r") as file:
-            content = file.read()
-            return content
-    except:
-        print(f"{file_path} does not exsist")
+    with open(file_path, "r", encoding="utf-8") as f:
+        return f.read()
 
 
-def get_links(source_note_id, file_path):
+def normalize_link_target(raw: str) -> str:
+    """
+    Takes contents inside [[...]] and returns a vault filename like 'Note.md'
+    Handles:
+      [[Note]]
+      [[Note|alias]]
+      [[Note#Heading]]
+      [[Note#Heading|alias]]
+    """
+    target = raw.split("|", 1)[0]  # drop alias
+    target = target.split("#", 1)[0]  # drop heading anchor
+    target = target.strip()
+
+    if not target:
+        return ""
+
+    # If [[Note.md]] keep it, else add .md
+    if not target.lower().endswith(".md"):
+        target += ".md"
+
+    return target
+
+
+def get_links(note_id_a, file_path):
     try:
         with open(file_path, "r") as file:
 
@@ -85,59 +104,69 @@ def get_links(source_note_id, file_path):
                     if end == -1:
                         break
 
-                    link_name = line[start + 2 : end]
-                    target_path = os.path.join(VAULT_DIR, link_name)
+                    inner = line[start + 2 : end]
+                    target_filename = normalize_link_target(inner)
 
-                    if os.path.isfile(target_path):
-                        target_note_id = build_note_id(target_path)
+                    if target_filename:
+                        target_path = os.path.join(VAULT_DIR, target_filename)
 
-                        insert_note_link(source_note_id, target_note_id)
+                        if os.path.isfile(target_path):
+                            note_id_b = build_note_id(target_path)
+
+                            if note_exists(note_id_b):
+                                insert_note_link(note_id_a, note_id_b)
 
                     line = line[end + 2 :]
 
-    except:
-        print(f"{file_path} does not exsist")
+    except FileNotFoundError:
+        print(f"{file_path} does not exist")
+    except Exception as e:
+        print(f"Error parsing links for {file_path}: {e}")
 
 
 def index_vault():
+    note_files = []
 
     for filename in os.listdir(VAULT_DIR):
-        if filename[-2:] != "md":
+        if not filename.lower().endswith(".md"):
             continue
 
         full_path = os.path.join(VAULT_DIR, filename)
-        if os.path.isfile(full_path):
 
-            note_id = build_note_id(full_path)
+        if not os.path.isfile(full_path):
+            continue
 
-            get_links(id, full_path)
+        note_id = build_note_id(full_path)
 
-            note = {
-                "note_id": note_id,
-                "path": full_path,
-                "title": filename,
-                "raw_text": get_text(full_path),
-                "created_at": get_file_times(full_path)["created_at"],
-                "modified_at": get_file_times(full_path)["modified_at"],
-            }
+        raw_text = get_text(full_path)
+        times = get_file_times(full_path)
 
-            insert_note(
-                note["note_id"],
-                note["path"],
-                note["title"],
-                note["raw_text"],
-                note["created_at"],
-                note["modified_at"],
-            )
+        insert_note(
+            note_id,
+            full_path,
+            filename,
+            raw_text,
+            times["created_at"],
+            times["modified_at"],
+        )
 
-            # segment here
-            build_segments(note_id)
+        # segment here
+        build_segments(note_id)
+
+        note_files.append((note_id, full_path))
+
+    for note_id, full_path in note_files:
+        get_links(note_id, full_path)
 
 
-index_vault()
+if __name__ == "__main__":
+    index_vault()
+
+
+# index_vault()
 # print(get_notes())
-note = "Obsidian Test"
-note_path = f"{VAULT_DIR}/{note}.md"
+# note = "Obsidian Test"
+# note_path = f"{VAULT_DIR}/{note}.md"
 # l = get_links("Basics Of Technical Analysis FNCE")
 # print(l)
 # print(l[4])

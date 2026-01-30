@@ -1,4 +1,5 @@
 from os import wait
+import re
 from database.notes import *
 from utils.ids import build_segment_id
 
@@ -17,14 +18,53 @@ from utils.ids import build_segment_id
 # testing for bolds
 # test_note_id = "20251225082000"
 
-
-# print(lines)
-
-FOUND_HEADER = False
-FOUND_BOLD = False
+# remove the properties
+_FRONTMATTER_RE = re.compile(r"\A---\s*\n.*?\n---\s*\n", re.DOTALL)
+# remove code blocks
+_CODE_FENCE_RE = re.compile(r"```.*?```", re.DOTALL)
 
 MIN_CHARS = 100
 MIN_WORDS = 20
+
+
+def strip_frontmatter(text: str) -> str:
+    return re.sub(_FRONTMATTER_RE, "", text)
+
+
+def strip_code_fences(text: str) -> str:
+    return re.sub(_CODE_FENCE_RE, "", text)
+
+
+def is_meaningful_segment(text: str) -> bool:
+    if not text:
+        return False
+
+    cleaned = text.strip()
+    if not cleaned:
+        return False
+
+    cleaned = strip_frontmatter(cleaned)
+    cleaned = strip_code_fences(cleaned).strip()
+
+    if not cleaned:
+        return False
+
+    # drop segments that are basically only embeds / links
+    # still allows some links, but not link-only chunks
+    just_links = re.sub(r"\[\[.*?\]\]", "", cleaned)
+    just_links = re.sub(r"!\[\[.*?\]\]", "", just_links).strip()
+
+    # count real words (letters+numbers)
+    words = re.findall(r"[A-Za-z0-9]+", cleaned)
+
+    if len(cleaned) < MIN_CHARS:
+        return False
+    if len(words) < MIN_WORDS:
+        return False
+    if len(just_links) < 20:  # mostly links/embeds
+        return False
+
+    return True
 
 
 def process_line_into_segments(curr_segment, segments, is_delimeter, line):
@@ -65,7 +105,6 @@ def is_header(line):
     if line[hash_count : hash_count + 1] != " ":
         return False
 
-    FOUND_HEADER = True
     return True
 
 
@@ -75,22 +114,12 @@ def build_segments_with_headers(lines):
 
     for line in lines:
 
-        is_delimeter = is_header(line)
-
-        segment = process_line_into_segments(segment, segments, is_delimeter, line)
+        segment = process_line_into_segments(segment, segments, is_header(line), line)
 
     if segment["heading"] or segment["text"]:
         segments.append(segment)
 
     return segments
-
-
-# build_segments_with_headers()
-
-
-def is_bold(line):
-    # update to check if entire line is bold maybe?
-    pass
 
 
 def build_segments_with_bolds(lines):
@@ -102,9 +131,6 @@ def build_segments_with_bolds(lines):
         bold_italic = line[:3] == "***"
 
         is_delimeter = bold or bold_italic
-
-        if is_delimeter:
-            FOUND_BOLD = True
 
         segment = process_line_into_segments(segment, segments, is_delimeter, line)
 
@@ -118,6 +144,12 @@ def build_segments(note_id):
 
     # maybe send in raw text?
     raw_text = get_raw_text_by_id(note_id)
+
+    if raw_text is None:
+        return []
+
+    raw_text = strip_frontmatter(raw_text)
+
     lines = raw_text.split("\n")
 
     segments = build_segments_with_headers(lines)
@@ -128,33 +160,38 @@ def build_segments(note_id):
     if len(segments) <= 1:
         segments = [{"heading": "", "text": raw_text}]
 
-    for position, segment in enumerate(segments, start=1):
+    position = 1
+    kept = []
 
-        segment_id = build_segment_id(note_id, segment["heading"], position)
-
+    for segment in segments:
         content = segment["text"].strip()
 
-        if len(content) < MIN_CHARS:
+        if not is_meaningful_segment(content):
             continue
+
+        segment_id = build_segment_id(note_id, segment["heading"], position)
 
         # i do not think the position is working
         insert_segment(
             segment_id=segment_id,
             note_id=note_id,
             heading=segment["heading"],
-            content=segment["text"],
+            content=content,
             position=position,
         )
 
-    return segments
+        kept.append(segment)
+        position += 1
+
+    return kept
 
 
-def test():
-    test_note_id = get_note_id_by_path(
-        "/Users/luqmanajani/documents/Notes/Obsidian-Vault/Chapter 1 — The Purpose and Use of Financial Statements.md"
-    )
+# def test():
+#     test_note_id = get_note_id_by_path(
+#         "/Users/luqmanajani/documents/Notes/Obsidian-Vault/Chapter 1 — The Purpose and Use of Financial Statements.md"
+#     )
 
-    # print(build_segments(test_note_id))
+# print(build_segments(test_note_id))
 
 
 # print(get_raw_text_by_id(test_id))

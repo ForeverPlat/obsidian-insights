@@ -78,6 +78,14 @@ def get_raw_text_by_id(note_id):
     return row[0] if row else ""
 
 
+def note_exists(note_id: str) -> bool:
+    cursor.execute(
+        "SELECT 1 FROM note WHERE id = ?",
+        (note_id,),
+    )
+    return cursor.fetchone() is not None
+
+
 # [ LINK OPERATIONS ]
 # - insert_link
 # - get_links_from
@@ -85,13 +93,13 @@ def get_raw_text_by_id(note_id):
 # - etc.
 
 
-def insert_note_link(seg_a_id, seg_b_id):
+def insert_note_link(note_id_a, note_id_b):
 
-    note_id_1 = get_note_id_by_segment_id(seg_a_id)
-    note_id_2 = get_note_id_by_segment_id(seg_b_id)
+    if note_id_a == note_id_b:
+        return
 
-    note_low_id = min(note_id_1, note_id_2)
-    note_high_id = max(note_id_1, note_id_2)
+    note_low_id = min(note_id_a, note_id_b)
+    note_high_id = max(note_id_a, note_id_b)
 
     cursor.execute(
         "INSERT INTO link (note_a_id, note_b_id) VALUES (?,?)",
@@ -101,13 +109,10 @@ def insert_note_link(seg_a_id, seg_b_id):
     conn.commit()
 
 
-def note_link_exist(seg_a_id, seg_b_id):
+def note_link_exist(note_id_a, note_id_b):
 
-    note_id_1 = get_note_id_by_segment_id(seg_a_id)
-    note_id_2 = get_note_id_by_segment_id(seg_b_id)
-
-    note_low_id = min(note_id_1, note_id_2)
-    note_high_id = max(note_id_1, note_id_2)
+    note_low_id = min(note_id_a, note_id_b)
+    note_high_id = max(note_id_a, note_id_b)
 
     cursor.execute(
         "SELECT 1 FROM link WHERE note_a_id = ? AND note_b_id = ?",

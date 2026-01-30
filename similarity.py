@@ -1,4 +1,3 @@
-from torch import topk
 from database import init_all_schemas
 from database.embeddings import get_embeddings
 from database.notes import (
@@ -21,6 +20,9 @@ def compute_similarity(model_name):
 
     embedding_matrix = np.vstack(embedding_vectors)
     similarity_matrix = cosine_similarity(embedding_matrix)
+
+    if not embedding_vectors:
+        return [], np.array([])
 
     # segment_ids are kind of like the
     # the rows and columns label for the matrix
@@ -106,12 +108,12 @@ def find_missing_connections(similar_edges):
     return connections
 
 
-segment_ids, similarity_matrix = compute_similarity(model_name)
-similar_edges = extract_similar_edges(segment_ids, similarity_matrix)
-missing_connections = find_missing_connections(similar_edges)
-
-# print(missing_connections)
-
-for con in missing_connections:
-    print(con)
-    print("")
+# segment_ids, similarity_matrix = compute_similarity(model_name)
+# similar_edges = extract_similar_edges(segment_ids, similarity_matrix)
+# missing_connections = find_missing_connections(similar_edges)
+#
+# # print(missing_connections)
+#
+# for con in missing_connections:
+#     print(con)
+#     print("")
