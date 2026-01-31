@@ -30,7 +30,7 @@ def compute_similarity(model_name):
     return segment_ids, similarity_matrix
 
 
-def extract_similar_edges(segment_ids, similarity_matrix, top_k=7):
+def extract_similar_edges(segment_ids, similarity_matrix):
 
     similar_edges = {}
 
@@ -87,10 +87,10 @@ def extract_similar_edges(segment_ids, similarity_matrix, top_k=7):
         reverse=True,
     )
 
-    return sorted_edges[:top_k]
+    return sorted_edges
 
 
-def find_missing_connections(similar_edges):
+def find_missing_connections(similar_edges, top_k=5):
 
     connections = []
 
@@ -116,7 +116,7 @@ def find_missing_connections(similar_edges):
             }
         )
 
-    return connections
+    return connections[:top_k]
 
 
 # segment_ids, similarity_matrix = compute_similarity(model_name)
