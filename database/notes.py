@@ -48,6 +48,7 @@ def drop_all_tables():
 
     cursor.execute("DROP TABLE IF EXISTS link")
     cursor.execute("DROP TABLE IF EXISTS segment")
+    cursor.execute("DROP TABLE IF EXISTS embedding")
     cursor.execute("DROP TABLE IF EXISTS note")
 
     cursor.execute("PRAGMA foreign_keys = ON")
@@ -180,9 +181,9 @@ def get_note_title_by_segment_id(segment_id):
     note_id = get_note_id_by_segment_id(segment_id)
 
     cursor.execute("SELECT title FROM note WHERE id = ?", (note_id,))
+    row = cursor.fetchone()
 
-    title = cursor.fetchone()
-    return title
+    return row[0] if row else ""
 
 
 def insert_segment(segment_id, note_id, heading, content, position):

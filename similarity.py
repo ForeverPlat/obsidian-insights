@@ -30,7 +30,7 @@ def compute_similarity(model_name):
     return segment_ids, similarity_matrix
 
 
-def extract_similar_edges(segment_ids, similarity_matrix, top_k=5):
+def extract_similar_edges(segment_ids, similarity_matrix, top_k=7):
 
     similar_edges = {}
 
@@ -107,12 +107,15 @@ def find_missing_connections(similar_edges):
 
             # for visual rep
         connections.append(
-            f"{edge['source_name']} -> {edge['target_name']}, score: {edge['score']}\n\n"
-            + f"{edge['source_name']} \n {edge['source_content']}\n\n"
-            + f"{edge['target_name']} \n {edge['target_content']}\n\n"
+            {
+                "source_name": edge["source_name"],
+                "target_name": edge["target_name"],
+                "score": edge["score"],
+                "source_content": edge["source_content"],
+                "target_content": edge["target_content"],
+            }
         )
 
-    # check if edge already exist (link)
     return connections
 
 

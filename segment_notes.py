@@ -180,7 +180,15 @@ def build_segments(note_id):
             position=position,
         )
 
-        kept.append(segment)
+        kept.append(
+            {
+                "segment_id": segment_id,
+                "note_id": note_id,
+                "heading": segment["heading"],
+                "content": content,
+                "position": position,
+            }
+        )
         position += 1
 
     return kept
