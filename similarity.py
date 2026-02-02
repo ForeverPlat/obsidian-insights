@@ -73,6 +73,7 @@ def extract_similar_edges(segment_ids, similarity_matrix):
                 "target_name": get_note_title_by_segment_id(seg_b),
                 "source_content": get_segment_content(seg_a),
                 "target_content": get_segment_content(seg_b),
+                "num_similar_segments": 0,
             }
 
             if edge_key not in similar_edges:
@@ -80,6 +81,7 @@ def extract_similar_edges(segment_ids, similarity_matrix):
             else:
                 if score > similar_edges[edge_key]["score"]:
                     similar_edges[edge_key] = edge
+                similar_edges[edge_key]["num_similar_segments"] += 1
 
     sorted_edges = sorted(
         similar_edges.values(),
@@ -90,9 +92,16 @@ def extract_similar_edges(segment_ids, similarity_matrix):
     return sorted_edges
 
 
-def find_missing_connections(similar_edges, top_k=5):
+def classify_relationship(edge):
+    if edge["num_similar_segments"] >= 3:
+        return "merge_candidate"
+    return "missing_connection"
+
+
+def find_relationships(similar_edges, top_k=5):
 
     connections = []
+    merges = []
 
     for edge in similar_edges:
 
@@ -102,21 +111,30 @@ def find_missing_connections(similar_edges, top_k=5):
         if source_note == target_note:
             continue
 
+        relation_type = classify_relationship(edge)
+
+        payload = {
+            "source_name": edge["source_name"],
+            "target_name": edge["target_name"],
+            "score": edge["score"],
+            "source_content": edge["source_content"],
+            "target_content": edge["target_content"],
+        }
+
+        if relation_type == "merge_candidate":
+            merges.append(payload)
+            continue
+
         if note_link_exist(source_note, target_note):
             continue  # already linked
 
             # for visual rep
-        connections.append(
-            {
-                "source_name": edge["source_name"],
-                "target_name": edge["target_name"],
-                "score": edge["score"],
-                "source_content": edge["source_content"],
-                "target_content": edge["target_content"],
-            }
-        )
+        connections.append(payload)
 
-    return connections[:top_k]
+    return {
+        "missing_connections": connections[:top_k],
+        "merge_candidates": merges[:top_k],
+    }
 
 
 # segment_ids, similarity_matrix = compute_similarity(model_name)
