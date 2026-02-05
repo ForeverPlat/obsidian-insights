@@ -10,8 +10,6 @@ Instead of pulling information from the internet or suggesting new content, it l
 
 The goal is to help you keep a clean, intentional knowledge base as it grows.
 
----
-
 ## Why this exists
 
 As a note collection grows, structure naturally starts to break down:
@@ -23,8 +21,6 @@ As a note collection grows, structure naturally starts to break down:
 Most tools rely on manual tags or explicit backlinks. **vault-insight** looks for hidden relationships by analyzing how ideas appear across your notes.
 
 It is meant to support decisions, not automate them.
-
----
 
 ## What it does (currently)
 
@@ -75,8 +71,6 @@ SHARED SEGMENTS : 12
 
 The tool shows overlapping sections so you can quickly decide whether the notes should be merged or kept separate.
 
----
-
 ## Planned feature
 
 ### Temporal recall (today)
@@ -98,8 +92,6 @@ Revisit:
 ```
 
 This feature is intended to be lightweight and helpful, not a full study or flashcard system.
-
----
 
 ## How it works (high level)
 
@@ -128,8 +120,6 @@ Signals are generated:
 - links are treated as structure, not discovery
 - results always include readable evidence
 
----
-
 ## What this tool does not do
 
 - does not fetch information from the internet
@@ -140,8 +130,6 @@ Signals are generated:
 It simply asks:
 
 > Does the structure of this vault still reflect how these ideas relate to each other?
-
----
 
 ## Usage
 
@@ -154,8 +142,6 @@ vault-insight merge
 ```
 
 The tool is installed as a native command, so it can be run directly from the terminal without invoking Python scripts.
-
----
 
 ## Why this project is interesting
 
