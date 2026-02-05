@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vault-insight"
+version = "0.1.0"
+dependencies = []
+
+[tool.setuptools]
+packages = ["database", "pipeline", "commands", "utils"]
+py-modules = ["cli", "main"]
+
+[project.scripts]
+vault-insight = "cli:cli"
