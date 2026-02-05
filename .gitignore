@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
 
 # SQLite databases
 *.db
@@ -10,3 +11,6 @@ embeddings.db
 
 # venv
 .venv/
+
+
+*.egg-info/
