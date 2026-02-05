@@ -46,13 +46,13 @@ def init_schema():
 def drop_all_tables():
     cursor.execute("PRAGMA foreign_keys = OFF")
 
+    cursor.execute("DROP TABLE IF EXISTS similar_edge")
     cursor.execute("DROP TABLE IF EXISTS link")
     cursor.execute("DROP TABLE IF EXISTS segment")
     cursor.execute("DROP TABLE IF EXISTS embedding")
     cursor.execute("DROP TABLE IF EXISTS note")
 
     cursor.execute("PRAGMA foreign_keys = ON")
-
     conn.commit()
 
 
@@ -82,6 +82,12 @@ def get_note_id_by_path(file_path):
 def get_notes():
     cursor.execute("SELECT * FROM note")
     return cursor.fetchall()
+
+
+def get_note_title_by_id(note_id):
+    cursor.execute("SELECT title FROM note WHERE id = ?", (note_id,))
+    row = cursor.fetchone()
+    return row[0] if row else ""
 
 
 def get_raw_text_by_id(note_id):
