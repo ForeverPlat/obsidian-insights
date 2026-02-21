@@ -192,6 +192,46 @@ def get_note_title_by_segment_id(segment_id):
     return row[0] if row else ""
 
 
+def get_similar_notes(note_id, order_by="best_score DESC"):
+    cursor.execute(
+        f"""
+        SELECT
+            note_a_id,
+            note_b_id,
+            best_score,
+            num_similar_segments,
+            rep_seg_a_id,
+            rep_seg_b_id
+        FROM similar_edge
+        WHERE note_a_id = ? OR note_b_id = ?
+        ORDER BY {order_by}
+    """,
+        (note_id, note_id),
+    )
+    rows = cursor.fetchall()
+
+    result = []
+
+    for row in rows:
+        similar_note_id = ""
+        if row[0] == note_id:
+            similar_note_id = row[1]
+        else:
+            similar_note_id = row[0]
+
+        result.append(
+            {
+                "note_id": similar_note_id,
+                "best_score": row[2],
+                "num_similar_segments": row[3],
+                "rep_seg_a_id": row[4],
+                "rep_seg_b_id": row[5],
+            }
+        )
+
+    return result
+
+
 def insert_segment(segment_id, note_id, heading, content, position):
 
     # check if note exists

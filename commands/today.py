@@ -1,7 +1,9 @@
 import os
 from datetime import datetime, time
 
+from database.notes import get_note_id_by_path, get_note_title_by_id, get_similar_notes
 from pipeline.index_vault import VAULT_DIR
+from utils.display import display_today
 
 
 def _get_files(vault_path):
@@ -47,8 +49,16 @@ def run_today(args):
         return
 
     print(todays_note)
+
     # get the id for that note
+    note_id = get_note_id_by_path(todays_note["file"])
+    note_id = "0cc7894a371285621fa0564a610d3c1f47bdc3179991a4ad50d3a62964ae664e"  # <== ONLY FOR TESTING REMOVE
+    print(note_id)
 
     # based on that find other notes in matrix that are similar
+    similar_notes = get_similar_notes(note_id)
+    similar_notes = similar_notes[:3]
+
+    display_today(note_id, similar_notes)
 
     # return the similar notes who access time has been more than a # of time
